@@ -56,7 +56,7 @@ class AESCrypto:
             if read_size == 0:
                 break
             elif rdmod != 0:
-                data += ' ' * (16 - rdmod)
+                data += bytes(' ' * (16 - rdmod))
             encrypted_data = self.encrypt(data)
             yield encrypted_data
 
