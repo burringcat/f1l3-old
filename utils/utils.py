@@ -3,13 +3,15 @@ from hashlib import sha3_512
 import struct
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
+from django.core.files.base import File
 from base64 import b32decode, b32encode
+
 class AESCrypto:
     def __init__(self, key=None):
         self.key = key or self.gen_key(16)
         if isinstance(self.key, str):
             self.key = self.str2key(self.key)
-        self.iv = None
+        self._iv = None
         self._aes = None
 
     @staticmethod
@@ -30,18 +32,20 @@ class AESCrypto:
     def key_hash(k: bytes):
         kh = sha3_512(k).hexdigest()
         return kh
-
     def encrypt(self, data: bytes) -> bytes:
         return self.aes.encrypt(data)
     def decrypt(self, data:bytes) -> bytes:
         return self.aes.decrypt(data)
-
-    def iter_encrypt_file(self, file, chunk_size=1024*16):
-        file.seek(0, SEEK_END)
-        file_size = file.tell()
-        file.seek(SEEK_SET)
-        yield struct.pack('<Q', file_size)
-        yield self.iv
+    def file_header_data(self, file_size):
+        return struct.pack('<Q', file_size) + self.iv
+    def iter_encrypt_file(self, file, file_size:int=0, chunk_size=File.DEFAULT_CHUNK_SIZE):
+        def calc_file_size():
+            file.seek(0, SEEK_END)
+            sz = file.tell()
+            file.seek(SEEK_SET)
+            return sz
+        file_size = file_size if file_size != 0 else calc_file_size()
+        yield self.file_header_data(file_size)
         mod = chunk_size % 16
         if mod != 0:
             chunk_size += 16 - mod
@@ -56,11 +60,11 @@ class AESCrypto:
             encrypted_data = self.encrypt(data)
             yield encrypted_data
 
-    def iter_decrypt_file(self, encrypted_file, chunk_size=1024*16):
+    def iter_decrypt_file(self, encrypted_file, chunk_size=File.DEFAULT_CHUNK_SIZE):
         remaining_file_size = struct.unpack('<Q',
                                   encrypted_file.read(
                                       struct.calcsize('<Q')))[0]
-        self.iv = encrypted_file.read(16)
+        self._iv = encrypted_file.read(16)
         while True:
             data = encrypted_file.read(chunk_size)
             read_size = len(data)
@@ -79,11 +83,13 @@ class AESCrypto:
     @property
     def key_str(self):
         return self.key2str(self.key)
-
+    @property
+    def iv(self):
+        if self._iv is None:
+            self._iv = self._gen_iv()
+        return self._iv
     @property
     def aes(self):
-        if self.iv is None:
-            self.iv = self._gen_iv()
         if self._aes is None:
             self._aes = AES.new(self.key, AES.MODE_CBC, self.iv)
         return self._aes

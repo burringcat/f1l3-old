@@ -1,19 +1,31 @@
 import mimetypes
-from django.http import HttpResponse, HttpResponseNotFound
-
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseBadRequest
+from django.shortcuts import render
 from utils.utils import AESCrypto
 
 from file.models import File
+from .forms import UploadFileForm, handle_uploaded_file
 # Create your views here.
+def main_on_post_test(request):
+    form = UploadFileForm(request.POST, request.FILES)
+    print(form.is_valid())
+    if form.is_valid():
+        handle_uploaded_file(request.FILES['file'])
+        return HttpResponse('yes')
+
 def main_on_post(request):
-    pass
+    file = request.FILES.get('file')
+    if file is None:
+        return HttpResponseBadRequest()
 def main_on_get(request):
-    pass
+    return render(request, 'f1l3/index.html')
+
+
 def main(request):
     if request.method == 'GET':
         return main_on_get(request)
     if request.method == 'POST':
-        return main_on_post(request)
+        return main_on_post_test(request)
 
 def download(request, fid, key):
     bytes_key = AESCrypto.str2key(key)
