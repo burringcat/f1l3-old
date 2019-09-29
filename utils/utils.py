@@ -1,4 +1,4 @@
-from os import SEEK_END, SEEK_SET
+from os import SEEK_END
 from hashlib import sha3_512
 import struct
 from Crypto.Cipher import AES
@@ -39,14 +39,16 @@ class AESCrypto:
         return self.aes.decrypt(data)
     def file_header_data(self, file_size):
         return struct.pack('<Q', file_size) + self.iv
-    def iter_encrypt_file(self, file, file_size:int=0, chunk_size=File.DEFAULT_CHUNK_SIZE):
+    def iter_encrypt_file(self, file, file_size:int=0, chunk_size=File.DEFAULT_CHUNK_SIZE, reverse_header_pos=True):
         def calc_file_size():
-            file.seek(SEEK_END)
+            file.seek(0, SEEK_END)
             sz = file.tell()
-            file.seek(SEEK_SET)
+            file.seek(0)
             return sz
         file_size = file_size if file_size != 0 else calc_file_size()
-        yield self.file_header_data(file_size)
+        header = self.file_header_data(file_size)
+        if reverse_header_pos is False:
+            yield header
         mod = chunk_size % 16
         if mod != 0:
             chunk_size += 16 - mod
@@ -60,6 +62,9 @@ class AESCrypto:
                 data += bytes(' ' * (16 - rdmod))
             encrypted_data = self.encrypt(data)
             yield encrypted_data
+        if reverse_header_pos:
+            yield header
+
 
     def iter_decrypt_file(self, encrypted_file, chunk_size=File.DEFAULT_CHUNK_SIZE, reverse_header_pos=True):
         if reverse_header_pos:
@@ -73,7 +78,7 @@ class AESCrypto:
         self._iv = encrypted_file.read(16)
 
         if reverse_header_pos:
-            encrypted_file.seek(SEEK_SET)
+            encrypted_file.seek(0)
         while True:
             data = encrypted_file.read(chunk_size)
             read_size = len(data)

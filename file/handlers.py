@@ -22,7 +22,6 @@ class EncryptedTemporaryFileUploadHandler(TemporaryFileUploadHandler):
         self.file.encrypted_file_size += len(edata)
 
     def file_complete(self, file_size):
-        print(self.file.encrypted_file_size)
         header = self.file.encryptor.file_header_data(self.file.real_size)
         self.file.write(header)
         self.file.encrypted_file_size += len(header)

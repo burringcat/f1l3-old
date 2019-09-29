@@ -47,13 +47,13 @@ def download(request, fid, key):
     return resp
 
 def download_test(request, key):
-    file = open('1.pdf', 'rb')
-    content_type = mimetypes.guess_type('1.pdf')
+    file = open('1.jpg', 'rb')
+    content_type = mimetypes.guess_type('1.jpg')[0]
     aes = AESCrypto(key=AESCrypto.str2key(key))
     g = aes.iter_decrypt_file(file)
     resp = StreamingHttpResponse(g,
                                  status=200, content_type=content_type)
-    resp['Content-Disposition'] = 'attachment; filename=' + '1.pdf'
+    resp['Content-Disposition'] = 'attachment; filename=' + '1.jpg'
     return resp
 def handle500(request):
     return JsonResponse({'message': 'File too large or there is a server error', 'status': 500})
