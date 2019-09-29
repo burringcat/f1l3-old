@@ -20,3 +20,4 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('file.urls')),
 ]
+handler500 = 'file.views.handle500'

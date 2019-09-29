@@ -4,9 +4,10 @@ import struct
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from django.core.files.base import File
-from base64 import b32decode, b32encode
+from base64 import b16decode, b16encode
 
 class AESCrypto:
+    _header_size = struct.calcsize('<Q') + 16
     def __init__(self, key=None):
         self.key = key or self.gen_key(16)
         if isinstance(self.key, str):
@@ -22,11 +23,11 @@ class AESCrypto:
         return get_random_bytes(keylen)
     @staticmethod
     def key2str(key) -> str:
-        s = str(b32encode(key), encoding='utf-8')
+        s = str(b16encode(key), encoding='utf-8')
         return s
     @staticmethod
     def str2key(s) -> bytes:
-        key = b32decode(bytes(s))
+        key = b16decode(bytes(s, encoding='utf-8'))
         return key
     @staticmethod
     def key_hash(k: bytes):
@@ -40,7 +41,7 @@ class AESCrypto:
         return struct.pack('<Q', file_size) + self.iv
     def iter_encrypt_file(self, file, file_size:int=0, chunk_size=File.DEFAULT_CHUNK_SIZE):
         def calc_file_size():
-            file.seek(0, SEEK_END)
+            file.seek(SEEK_END)
             sz = file.tell()
             file.seek(SEEK_SET)
             return sz
@@ -60,16 +61,27 @@ class AESCrypto:
             encrypted_data = self.encrypt(data)
             yield encrypted_data
 
-    def iter_decrypt_file(self, encrypted_file, chunk_size=File.DEFAULT_CHUNK_SIZE):
+    def iter_decrypt_file(self, encrypted_file, chunk_size=File.DEFAULT_CHUNK_SIZE, reverse_header_pos=True):
+        if reverse_header_pos:
+            encrypted_file.seek(0, SEEK_END)
+            encrypted_file_size = encrypted_file.tell()
+            encrypted_file.seek(-self._header_size, SEEK_END)
+
         remaining_file_size = struct.unpack('<Q',
                                   encrypted_file.read(
                                       struct.calcsize('<Q')))[0]
         self._iv = encrypted_file.read(16)
+
+        if reverse_header_pos:
+            encrypted_file.seek(SEEK_SET)
         while True:
             data = encrypted_file.read(chunk_size)
             read_size = len(data)
             if read_size == 0:
                 break
+            if reverse_header_pos and encrypted_file.tell() == encrypted_file_size:
+                data = data[:len(data) - self._header_size]
+            print(len(data), '---datasize')
             ori_data = self.decrypt(data)
             ori_data_size = len(ori_data)
             if remaining_file_size > ori_data_size:
@@ -78,8 +90,6 @@ class AESCrypto:
                 # remove padding spaces
                 yield ori_data[:remaining_file_size]
             remaining_file_size -= ori_data_size
-
-
     @property
     def key_str(self):
         return self.key2str(self.key)

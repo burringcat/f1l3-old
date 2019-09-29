@@ -14,7 +14,7 @@ class File(models.Model):
         return self.check_file()
     def check_file(self):
         pass
-    def iter_decrypt_read(self):
+    def iter_decrypt_read(self, aes_key: bytes):
         pass
     def iter_write(self):
         pass

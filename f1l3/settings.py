@@ -23,9 +23,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'j@nwn98j^)w8za7&b08y$ub@m03px4szvm5nm5z!c3n!i7=wyp'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -122,3 +122,18 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 FILE_UPLOAD_HANDLERS = ['file.handlers.EncryptedTemporaryFileUploadHandler']
+MB = 1024 * 1024
+F1L3_FILE_EXPIRATION_SETTINGS = {
+    # byte_size: x hours
+    # When file size < byte_size, it will be kept for x hours
+    # (-1 stands for forever)
+      # NOTE: the file size is determined by the content-length which is slightly
+      # larger(about some KBs larger) than the real file size
+    15 * MB: -1,
+    100 * MB: 24 * 7,
+    1024 * MB: 24,
+}
+
+# django will reset the connection if the file being uploaded is larger than this
+# NOTE: use wsgi servers
+F1L3_FILE_SIZE_LIMIT = 1024 * MB
