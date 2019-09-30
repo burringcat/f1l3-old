@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import main, download_test
+from .views import main, download
 urlpatterns = [
     path('', main),
-    path('d_test/<slug:key>/', download_test)
+    path('d/<slug:fid>/k/<slug:key>/<str:filename>', download)
 ]

@@ -20,13 +20,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'j@nwn98j^)w8za7&b08y$ub@m03px4szvm5nm5z!c3n!i7=wyp'
+SECRET_KEY = 'j@nwn98j^'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
-
+HOST = 'localhost:8000'
 
 # Application definition
 
@@ -120,7 +120,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
-
+MEDIA_ROOT = 'media/'
 FILE_UPLOAD_HANDLERS = ['file.handlers.EncryptedTemporaryFileUploadHandler']
 MB = 1024 * 1024
 F1L3_FILE_EXPIRATION_SETTINGS = {

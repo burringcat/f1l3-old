@@ -1,5 +1,6 @@
 import mimetypes
-
+import os
+from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotFound, \
     HttpResponseBadRequest, JsonResponse, StreamingHttpResponse
 from django.shortcuts import render
@@ -7,23 +8,32 @@ from django.shortcuts import render
 from utils.utils import AESCrypto
 from file.models import File
 
-from .forms import UploadFileForm, handle_uploaded_file
 
-# Create your views here.
-def main_on_post_test(request):
-    form = UploadFileForm(request.POST, request.FILES)
-    if form.is_valid():
-        file = request.FILES['file']
-        handle_uploaded_file(request.FILES['file'])
-        return JsonResponse({'message': 'OK', 'is_uploaded': True,
-                             'url': file.encryptor.key_str, 'status': 200})
-    return JsonResponse({'message': 'Bad request', 'is_uploaded': False,
-                             'url': '', 'status': 400})
+def handle_uploaded_file(f):
+    fpath = os.path.join(settings.MEDIA_ROOT, f.fid)
+    with open(fpath, 'wb+') as destination:
+        for chunk in f.chunks():
+            destination.write(chunk)
+    kh = AESCrypto.key_hash(f.encryptor.key)
+    k = f.encryptor.key_str
+    file_obj = File.objects.create(fid=f.fid, filename=f.file_name,
+                        keyhash=kh,
+                        expires_at=File.expire_time(f.encrypted_file_size),
+                        file_path=fpath, real_size_bytes=f.real_size, aes_iv=f.iv)
+    return f'http://{settings.HOST}/d/{f.fid}/k/{k}/{f.file_name}', file_obj.expires_at
+
 
 def main_on_post(request):
     file = request.FILES.get('file')
-    if file is None:
-        return HttpResponseBadRequest()
+    if file is not None:
+        url, expires_at = handle_uploaded_file(file)
+        expires_at = str(expires_at) if expires_at else None
+        return JsonResponse({'message': 'OK', 'is_uploaded': True,
+                             'url': url, 'status': 200, 'expires_at': expires_at})
+    return JsonResponse({'message': 'Bad request', 'is_uploaded': False,
+                         'url': None, 'status': 400, 'expires_at': None})
+
+
 def main_on_get(request):
     return render(request, 'f1l3/index.html')
 
@@ -32,28 +42,21 @@ def main(request):
     if request.method == 'GET':
         return main_on_get(request)
     if request.method == 'POST':
-        return main_on_post_test(request)
+        return main_on_post(request)
 
-def download(request, fid, key):
+
+def download(request, fid, key, filename):
     bytes_key = AESCrypto.str2key(key)
     kh = AESCrypto.key_hash(bytes_key)
     file = File.objects.filter(fid=fid, keyhash=kh).first()
-    if file is None or not file.is_avail:
+    if file is None or not File.is_avail(file):
         return HttpResponseNotFound()
-    content_type = mimetypes.guess_type(file.filename)
+    content_type = mimetypes.guess_type(filename)[0]
     resp = StreamingHttpResponse(file.iter_decrypt_read(bytes_key),
                                  status=200, content_type=content_type)
-    resp['Content-Disposition'] = 'attachment; filename=' + file.filename
+    # resp['Content-Disposition'] = 'attachment; filename=' + file.filename
     return resp
 
-def download_test(request, key):
-    file = open('1.jpg', 'rb')
-    content_type = mimetypes.guess_type('1.jpg')[0]
-    aes = AESCrypto(key=AESCrypto.str2key(key))
-    g = aes.iter_decrypt_file(file)
-    resp = StreamingHttpResponse(g,
-                                 status=200, content_type=content_type)
-    resp['Content-Disposition'] = 'attachment; filename=' + '1.jpg'
-    return resp
+
 def handle500(request):
     return JsonResponse({'message': 'File too large or there is a server error', 'status': 500})
