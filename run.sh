@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 gen_dotenv() {
   skey=$(python3 ./scripts/gen_secret_key.py)
   echo "What is your host?  default:(localhost:8000):"
