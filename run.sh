@@ -15,4 +15,4 @@ gen_cert() {
   sh ../scripts/gen_cert.sh
 }
 ([ -f './local_cert/crt' ] && [ -f './local_cert/key' ]) || gen_cert
-gunicorn --certfile=./local_cert/crt --keyfile=./local_cert/key f1l3.wsgi:application -w 8 &
+gunicorn --certfile=./local_cert/crt --keyfile=./local_cert/key f1l3.wsgi:application -w 8
