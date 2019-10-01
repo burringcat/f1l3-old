@@ -19,7 +19,10 @@ def handle_uploaded_file(f):
                         keyhash=kh,
                         expires_at=File.expire_time(f.encrypted_file_size),
                         file_path=fpath, real_size_bytes=f.real_size, aes_iv=f.iv)
-    return f'http://{settings.HOST}/d/{f.fid}/k/{k}/{f.file_name}', file_obj.expires_at
+    url = f'/d/{f.fid}/k/{k}/{f.file_name}'
+    if settings.HOST:
+        url = f'https://{settings.HOST}{url}'
+    return url, file_obj.expires_at
 
 
 def main_on_post(request):
