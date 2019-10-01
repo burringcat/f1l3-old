@@ -1,6 +1,7 @@
 from uuid import uuid4
 from django.core.files.uploadhandler import FileUploadHandler, StopUpload
 from django.core.files.uploadedfile import TemporaryUploadedFile
+from django.core.files import File
 from django.conf import settings
 from utils.utils import AESCrypto
 
@@ -27,16 +28,28 @@ class EncryptedTemporaryFileUploadHandler(FileUploadHandler):
                                           self.content_type, 0, self.charset, self.content_type_extra)
         self.file.file_name = self.file_name
         self.file.fid = fid
-    def receive_data_chunk(self, raw_data, start):
-        self.file.real_size += len(raw_data)
-        rdata_len_mod = len(raw_data) % 16
-        if rdata_len_mod != 0:
-            raw_data += bytes(' ' * (16 - rdata_len_mod), encoding='ascii')
-        edata = self.file.aes.encrypt(raw_data)
+        self.data = []
+
+    def write_encrypted_data(self, data_to_write):
+        edata = self.file.aes.encrypt(data_to_write)
         self.file.write(edata)
         self.file.encrypted_file_size += len(edata)
 
+    def receive_data_chunk(self, raw_data, start):
+        self.file.real_size += len(raw_data)
+        self.data.append(raw_data)
+        if len(self.data) == 2:
+            dif = File.DEFAULT_CHUNK_SIZE - len(self.data[0])
+            data_to_write = self.data[0] + self.data[1][:dif]
+            self.data[0] = bytes(self.data.pop(1)[dif:])
+            self.write_encrypted_data(data_to_write)
+
     def file_complete(self, file_size):
+        # last chunk
+        rdata_len_mod = len(self.data[0]) % 16
+        if rdata_len_mod != 0:
+            data_to_write = self.data.pop(0) + bytes(' ' * (16 - rdata_len_mod), encoding='ascii')
+            self.write_encrypted_data(data_to_write)
         self.file.seek(0)
         self.file.size = int(self.file.encrypted_file_size)
         del self.file.aes

@@ -1,8 +1,7 @@
 import mimetypes
 import os
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseNotFound, \
-    HttpResponseBadRequest, JsonResponse, StreamingHttpResponse
+from django.http import HttpResponseNotFound, JsonResponse, StreamingHttpResponse
 from django.shortcuts import render
 
 from utils.utils import AESCrypto
