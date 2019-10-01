@@ -19,7 +19,7 @@ def handle_uploaded_file(f):
                         keyhash=kh,
                         expires_at=File.expire_time(f.encrypted_file_size),
                         file_path=fpath, real_size_bytes=f.real_size, aes_iv=f.iv)
-    url = f'/d/{f.fid}/k/{k}/{f.file_name}'
+    url = f'/{k}{os.path.splitext(f.file_name)[1]}'
     if settings.HOST:
         url = f'https://{settings.HOST}{url}'
     return url, file_obj.expires_at
@@ -47,13 +47,13 @@ def main(request):
         return main_on_post(request)
 
 
-def download(request, fid, key, filename):
+def download(request, key, ext):
     bytes_key = AESCrypto.str2key(key)
     kh = AESCrypto.key_hash(bytes_key)
-    file = File.objects.filter(fid=fid, keyhash=kh).first()
+    file = File.objects.filter(keyhash=kh).first()
     if file is None or not File.is_avail(file):
         return HttpResponseNotFound()
-    content_type = mimetypes.guess_type(filename)[0]
+    content_type = mimetypes.guess_type('filename.' + ext)[0]
     resp = StreamingHttpResponse(file.iter_decrypt_read(bytes_key),
                                  status=200, content_type=content_type)
     # resp['Content-Disposition'] = 'attachment; filename=' + file.filename
