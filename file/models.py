@@ -1,21 +1,33 @@
-from datetime import timedelta, datetime
+from datetime import timedelta
+import os
+
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
 from utils.utils import AESCrypto
 
 
 # Create your models here.
 class File(models.Model):
-    fid = models.TextField()
+    fid = models.TextField(primary_key=True)
     filename = models.TextField()
     keyhash = models.TextField()
     expires_at = models.DateTimeField(null=True)
     file_path = models.FilePathField(null=True)
     real_size_bytes = models.BigIntegerField(default=0)
     aes_iv = models.BinaryField(default=b'')
-
+    @classmethod
+    def clear_expired(cls):
+        expired = cls.objects.\
+            filter(expires_at__isnull=False).\
+            filter(expires_at__lt=timezone.now()).\
+            all()
+        expired_fids = (f.fid for f in expired)
+        expired.delete()
+        return expired_fids
     @staticmethod
     def expire_time(file_size):
         if file_size > settings.F1L3_FILE_SIZE_LIMIT:
@@ -32,10 +44,7 @@ class File(models.Model):
 
     @staticmethod
     def is_avail(file_obj):
-        is_avail = file_obj.check_expiration()
-        if is_avail is False:
-            file_obj.delete()
-        return is_avail
+        return file_obj.fid not in File.clear_expired()
 
     def check_expiration(self):
         return self.expires_at is None or timezone.now() < self.expires_at
@@ -44,3 +53,9 @@ class File(models.Model):
         aes_crypto = AESCrypto(key=aes_key)
         return aes_crypto.iter_decrypt_file(self.file_path,
                                             ivnsz=(self.aes_iv, self.real_size_bytes))
+
+
+@receiver(post_delete, sender=File)
+def delete_actual_file(sender, instance: File, using, **kwargs):
+    if os.path.isfile(instance.file_path):
+        os.remove(instance.file_path)

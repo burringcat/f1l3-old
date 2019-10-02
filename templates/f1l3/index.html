@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>F1L3</title>
 </head>
 <body>
-<form action="/" method="POST" enctype="multipart/form-data">
-    <input type="text" name="title">
-    <input type="file" name="file">
-    <input type="submit">
+<h1>The F1L3 Manual</h1>
+<form action="{% url 'upload' %}" method="POST" enctype="multipart/form-data">
+    <input type="file" name="file"><br>
+    <input type="submit" value="upload">
+</form>
 </body>
 </html>

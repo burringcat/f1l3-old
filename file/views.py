@@ -1,5 +1,6 @@
 import mimetypes
 import os
+import binascii
 from django.conf import settings
 from django.http import HttpResponseNotFound, JsonResponse, StreamingHttpResponse
 from django.shortcuts import render
@@ -19,13 +20,13 @@ def handle_uploaded_file(f):
                         keyhash=kh,
                         expires_at=File.expire_time(f.encrypted_file_size),
                         file_path=fpath, real_size_bytes=f.real_size, aes_iv=f.iv)
-    url = f'/{k}{os.path.splitext(f.file_name)[1]}'
+    url = f'/{k.lower()}{os.path.splitext(f.file_name)[1]}'
     if settings.HOST:
         url = f'https://{settings.HOST}{url}'
     return url, file_obj.expires_at
 
 
-def main_on_post(request):
+def upload(request):
     file = request.FILES.get('file')
     if file is not None:
         url, expires_at = handle_uploaded_file(file)
@@ -35,30 +36,28 @@ def main_on_post(request):
     return JsonResponse({'message': 'Bad request', 'is_uploaded': False,
                          'url': None, 'status': 400, 'expires_at': None})
 
-
-def main_on_get(request):
+def main(request):
     return render(request, 'f1l3/index.html')
 
-
-def main(request):
-    if request.method == 'GET':
-        return main_on_get(request)
-    if request.method == 'POST':
-        return main_on_post(request)
-
-
-def download(request, key, ext):
-    bytes_key = AESCrypto.str2key(key)
+def handle_key(key, content_type_url):
+    key = key.upper()
+    try:
+        bytes_key = AESCrypto.str2key(key)
+    except binascii.Error:
+        return HttpResponseNotFound()
     kh = AESCrypto.key_hash(bytes_key)
     file = File.objects.filter(keyhash=kh).first()
     if file is None or not File.is_avail(file):
         return HttpResponseNotFound()
-    content_type = mimetypes.guess_type('filename.' + ext)[0]
+    content_type = mimetypes.guess_type(content_type_url)[0]
     resp = StreamingHttpResponse(file.iter_decrypt_read(bytes_key),
                                  status=200, content_type=content_type)
     # resp['Content-Disposition'] = 'attachment; filename=' + file.filename
     return resp
-
+def download(request, key, ext):
+    return handle_key(key, 'filename.' + ext)
+def download_no_ext(request, key):
+    return handle_key(key, 'filename')
 
 def handle500(request):
     return JsonResponse({'message': 'File too large or there is a server error', 'status': 500})
