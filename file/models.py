@@ -4,10 +4,10 @@ import os
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, pre_migrate, pre_save
 from django.dispatch import receiver
 
-from utils.utils import AESCrypto
+from utils.utils.crypto import AESCrypto
 
 
 # Create your models here.
@@ -53,6 +53,12 @@ class File(models.Model):
         aes_crypto = AESCrypto(key=aes_key)
         return aes_crypto.iter_decrypt_file(self.file_path,
                                             ivnsz=(self.aes_iv, self.real_size_bytes))
+
+
+def clear_expired_hook(sender, instance: File, using, **kwargs):
+    File.clear_expired()
+for signal in (pre_save, pre_migrate):
+    receiver(signal, sender=File)(clear_expired_hook)
 
 
 @receiver(post_delete, sender=File)

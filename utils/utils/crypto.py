@@ -10,17 +10,17 @@ from django.conf import settings
 
 def secret_key_aes():
     k = settings.SECRET_KEY
-    if len(k) < 17:
-        k = k.ljust(17, ' ')
+    if len(k) < 32:
+        k = k.ljust(32, ' ')
     return AES.new(bytes(k, encoding='utf8')[:16],
-                   AES.MODE_CBC, bytes(k, encoding='utf8')[1:17])
+                   AES.MODE_CBC, bytes(k, encoding='utf8')[16:32])
 
 
 class AESCrypto:
     _header_size = struct.calcsize('<Q') + 16
 
     def __init__(self, key=None):
-        self.key = key or self.gen_key(16)
+        self.key = key or self.gen_key(32)
         if isinstance(self.key, str):
             self.key = self.str2key(self.key)
 
@@ -40,6 +40,7 @@ class AESCrypto:
 
     @staticmethod
     def str2key(s) -> bytes:
+        s = s.upper()
         key = b16decode(bytes(s, encoding='utf-8'))
         key = secret_key_aes().decrypt(key)
         return key

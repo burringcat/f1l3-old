@@ -5,10 +5,36 @@
     <title>F1L3</title>
 </head>
 <body>
-<h1>The F1L3 Manual</h1>
+#### The F1L3 Manual ####<br>
+=========================<br>
+F1L3 is a server-side encrypted file hosting service, <br>
+it uses AES-256-CBC to encrypt your files on the server storage, <br>
+and the server(gunicorn) connects to its reversed proxy using https(usually). <br>
+The generated URL includes the encryption key.<br> <br>
+This is <b>NOT</b> a strong encryption and <b>DON'T</b> upload your secret files if you don't trust the owner of the server,<br>
+since the server owner can just print the keys out,<br>
+but F1L3 doesn't require JavaScript or anything bloated on the client side.<br>
+If you need a real end-to-end encrypted file hosting server, check <a href="https://framagit.org/luc/lufi">lufi</a>.
+<br>
+Choose wisely! :^)<br>
+<br>
+You can upload your file here:<br>
+<pre>
+    curl -F'file=@yourfile.png' https://{{ host }}/u/
+</pre>
+or use the file upload form:<br>
 <form action="{% url 'upload' %}" method="POST" enctype="multipart/form-data">
     <input type="file" name="file"><br>
     <input type="submit" value="upload">
 </form>
+<br><br>
+#### File Size Rules ####<br>
+=========================<br>
+Maximum file size: {{ max_size_mb }} MiB<br>
+<br>
+{% for s, d in size_rules %}
+  {{ forloop.counter }}. Files smaller than {{ s }} MiB will be kept {{ d }} <br>
+{% endfor %}
 </body>
 </html>
+

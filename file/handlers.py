@@ -3,7 +3,7 @@ from django.core.files.uploadhandler import FileUploadHandler, StopUpload
 from django.core.files.uploadedfile import TemporaryUploadedFile
 from django.core.files import File
 from django.conf import settings
-from utils.utils import AESCrypto
+from utils.utils.crypto import AESCrypto
 
 class EncryptedUploadedFile(TemporaryUploadedFile):
     def __init__(self, *args, **kwargs):
