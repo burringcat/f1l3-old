@@ -137,9 +137,8 @@ F1L3_FILE_EXPIRATION_SETTINGS = {
     # (-1 stands for forever)
       # NOTE: the file size is determined by the content-length which is slightly
       # larger(about some KBs larger) than the real file size
-    15 * MB: 0.01,
-    100 * MB: 24 * 7,
-    1024 * MB: 24,
+    5 * MB: -1,
+    1024 * MB: 1,
 }
 
 # django will reset the connection if the file being uploaded is larger than this
