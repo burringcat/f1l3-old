@@ -20,7 +20,7 @@ class AESCrypto:
     _header_size = struct.calcsize('<Q') + 16
 
     def __init__(self, key=None):
-        self.key = key or self.gen_key(32)
+        self.key = key or self.gen_key(16)
         if isinstance(self.key, str):
             self.key = self.str2key(self.key)
 
