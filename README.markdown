@@ -78,4 +78,4 @@ Have fun!
 `F1L3_HOST`: This is used in generated URLs.
 
 #### manage.py 
-`manage.py` will automatically load the `.env` file. I suggest run `run.sh` first to generate `.env` file and then run `manage.py` for development server.
+`manage.py` will automatically load the `.env` file. I suggest run `run.sh` first to generate `.env` file and then run `python3 manage.py runserver ` to start a development server.
