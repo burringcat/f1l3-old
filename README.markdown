@@ -69,4 +69,13 @@ The files uploaded will be saved in the `media` directory encrypted. You can edi
 Have fun!
 
 ## Developers
-Coming soon....
+### Environment Variables
+#### Variables
+`F1L3_DEBUG`: will set settings.py to True if set. When debugging, the secret key will be set to a default one and host will be set to `localhost:8000`
+
+`F1L3_SECRET_KEY`: This is required if `F1L3_DEBUG` is not set. This works as the django secret key. There is a script which can generate a random new key at `scripts/gen_secret_key.py`
+
+`F1L3_HOST`: This is used in generated URLs.
+
+#### manage.py 
+`manage.py` will automatically load the `.env` file. I suggest run `run.sh` first to generate `.env` file and then run `manage.py` for development server.
