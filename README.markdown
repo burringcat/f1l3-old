@@ -1,16 +1,10 @@
 # F1L3  
 ## Introduction
-F1L3 is a server-side encrypted file hosting service,  
-it uses AES-256-CBC to encrypt your files on the server storage,  
-and the server(gunicorn) connects to its reversed proxy using https(usually).  
-  
+F1L3 is a server-side encrypted file hosting service, it uses AES-256-CBC to encrypt your files on the server storage, and the server(gunicorn) connects to its reversed proxy using https(usually).  
+
 The generated URL includes the encryption key.  
-This is *NOT* a strong encryption and *DON'T* upload your secret files if you don't trust the owner of the server,  
-since the server owner can just print the keys out,  
-but F1L3 doesn't require JavaScript or anything bloated on the client side.  
-If you need an end-to-end encrypted file hosting server, check [lufi](https://framagit.org/luc/lufi).  
-  
-  
+This is *NOT* a strong encryption and *DON'T* upload your secret files if you don't trust the owner of the server, the server owner can just print the keys out, but F1L3 doesn't require JavaScript or anything bloated on the client side. If you need an end-to-end encrypted file hosting server, check [lufi](https://framagit.org/luc/lufi).  
+
 Choose wisely! :^)
 
 ## Demo
