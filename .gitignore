@@ -3,13 +3,15 @@
 venv
 .venv
 
+
 media/*
-!media/.gitkeep
+
 
 db.sqlite3
 
 __pycache__/
-migrations/
+file/migrations/*
+!file/migrations/__init__.py
 
 .env
 local_cert/*
