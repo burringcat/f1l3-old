@@ -71,7 +71,7 @@ Have fun!
 ## Developers
 ### Environment Variables
 #### Variables
-`F1L3_DEBUG`: will set settings.py to True if set. When debugging, the secret key will be set to a default one and host will be set to `localhost:8000`
+`F1L3_DEBUG`: will set settings.DEBUG to True if set. When debugging, the secret key will be set to a default one and host will be set to `localhost:8000`
 
 `F1L3_SECRET_KEY`: This is required if `F1L3_DEBUG` is not set. This works as the django secret key. There is a script which can generate a random new key at `scripts/gen_secret_key.py`
 
