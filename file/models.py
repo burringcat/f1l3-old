@@ -9,6 +9,8 @@ from django.dispatch import receiver
 
 from utils.utils.crypto import AESCrypto
 
+from user.models import F1L3User
+
 
 # Create your models here.
 class File(models.Model):
@@ -19,6 +21,7 @@ class File(models.Model):
     file_path = models.FilePathField(null=True)
     real_size_bytes = models.BigIntegerField(default=0)
     aes_iv = models.BinaryField(default=b'')
+    uploader = models.ForeignKey(F1L3User, null=True, on_delete=models.SET_NULL)
     @classmethod
     def clear_expired(cls):
         expired = cls.objects.\

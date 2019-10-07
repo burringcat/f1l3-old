@@ -18,12 +18,7 @@ class F1L3User(models.Model):
     ip = models.ForeignKey(IPAddress, on_delete=models.SET_NULL)
     def __init__(self, *args, **kwargs):
         super(F1L3User, self).__init__(*args, **kwargs)
-        self.commands = {
-            'ls': self.list_file,
-            'rm': self.remove_file,
-            'cp': self.copy_file,
-            'command_not_found': self.command_not_found
-        }
+
     @classmethod
     def generate_token_hash(cls, token: str):
         return sha3_256(token.encode()).hexdigest()
@@ -38,11 +33,3 @@ class F1L3User(models.Model):
             return None
         token_hash = cls.generate_token_hash(token)
         return F1L3User.objects.filter(token_hash=token_hash).first()
-    def list_file(self):
-        pass
-    def remove_file(self):
-        pass
-    def copy_file(self):
-        pass
-    def command_not_found(self, *args, **kwargs):
-        return f'Command not found! {" ".join(args)} {[k + " " + v for k, v in kwargs]}'

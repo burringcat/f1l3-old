@@ -1,9 +1,11 @@
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
-from django.http import HttpResponseBadRequest, HttpResponse, HttpResponseForbidden
+from django.http import HttpResponseBadRequest, HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import reverse
 from django.conf import settings
 from ipware import get_client_ip
+
+from utils.utils import userutils
 
 from .models import F1L3User, IPAddress
 
@@ -48,36 +50,25 @@ def generate_token(request):
     user.save()
     return HttpResponse(token)
 
+
 def login_user(request):
     user: User = authenticate(request)
     if user is not None:
         login(request, user)
     return reverse('homepage')
 
+
 def logout_user(request):
     logout(request)
     return reverse('homepage')
 
-def evaluate(request):
+
+def command(request):
     user = f1l3_auth(request)
     if user is None:
         return HttpResponseForbidden()
-    commands: str = request.POST.get('commands')
-    commands_list = commands.split('\n')
-    output = []
-    c = user.commands
-    for cmd in commands_list:
-        cmd = cmd.strip()
-        cmd = cmd.split(' ')
-        cmd_name = None
-        args = []
-        for word in cmd:
-            if not word:
-                continue
-            if cmd_name is None:
-                cmd_name = word
-            else:
-                args.append(word)
-
-        user_cmd = c.get(cmd_name, c['command_not_found'])
-        output.append(user_cmd(*args))
+    cmd = request.POST.get('cmd')
+    args = request.POST.get('args', '')
+    arg_list = args.split(',')
+    cmds = userutils.SerializableCommands(user)
+    return JsonResponse(cmds.exec(cmd, *arg_list))
