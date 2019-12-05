@@ -1,4 +1,4 @@
-Django==2.2.5
+Django==2.2.8
 django-ipware==2.1.0
 gunicorn==19.9.0
 pycryptodome==3.9.0
