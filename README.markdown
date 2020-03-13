@@ -8,10 +8,10 @@ This is *NOT* a strong encryption and *DON'T* upload your secret files if you do
 Choose wisely! :^)
 
 ## Demo
-A demo site is available at [f.odinfinch.xyz](https://f.odinfinch.xyz).
+A demo site is available at [f.0u0.fun](https://f.0u0.fun).
 You can upload your file directly (check the site to see how long your files will be kept):
 ```
-curl -F'file=@yourfile.png' https://f.odinfinch.xyz/u/
+curl -F'file=@yourfile.png' https://f.0u0.fun/u/
 ```
 ## Self Hosting
 This requires a unix-like system with a reversed proxy util(nginx or [caddy](https://caddyserver.com/)) and python3 installed.
