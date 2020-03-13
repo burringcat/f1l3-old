@@ -20,4 +20,4 @@ gen_cert() {
 
 cd "${project_root}"||exit
 python3 manage.py makemigrations && python3 manage.py migrate
-gunicorn --certfile=./local_cert/crt --keyfile=./local_cert/key f1l3.wsgi:application -w 8 --daemon
+gunicorn --certfile=./local_cert/crt --keyfile=./local_cert/key f1l3.wsgi:application -w 8
