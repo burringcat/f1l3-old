@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+project_root=$(pwd)
 gen_dotenv() {
   skey=$(python3 ./scripts/gen_secret_key.py)
   echo "What is your host?  default:(localhost:8000):"
@@ -16,5 +17,7 @@ gen_cert() {
   sh ../scripts/gen_cert.sh
 }
 ([ -f './local_cert/crt' ] || [ -f './local_cert/key' ]) || gen_cert
+
+cd "${project_root}"||exit
 python3 manage.py makemigrations && python3 manage.py migrate
 gunicorn --certfile=./local_cert/crt --keyfile=./local_cert/key f1l3.wsgi:application -w 8 --daemon
